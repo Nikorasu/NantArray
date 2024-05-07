@@ -43,9 +43,9 @@ class AntArray:
 
     def print_state(self):
         output = ""
-        for i, row in enumerate(self.array):
+        for row in self.array:
             row_symbols = []
-            for j, value in enumerate(row.tolist()):
+            for value in row.tolist():
                 if 0 < value < 1000:
                     row_symbols.append(f'\x1b[48;2;0;{int(value)};0m \x1b[0m') # green
                 elif 0 > value:
