@@ -73,17 +73,15 @@ class AntArray:
             ant_direction = (self.array[x, y] % 10) - 1
 
             # Calculate the new position based on the ant's current direction
-            new_x, new_y = x + directions[ant_direction][0], y + directions[ant_direction][1]
-
+            nx, ny = x + directions[ant_direction][0], y + directions[ant_direction][1]
             # Check if the new position is valid
-            if self.array[new_x, new_y] == 0:
+            if self.array[nx, ny] == 0:
                 # Update the ant's position
                 self.array[x, y] = 0
-                self.array[new_x, new_y] = ant_direction + (10 if is_fooding else 20) + 1
-
+                self.array[nx, ny] = ant_direction + (10 if is_fooding else 20) + 1
                 # Leave pheromones in the new position
-                self.phero[new_x, new_y] += -p_lvl if is_fooding else p_lvl
-                self.phero[new_x, new_y] = max(-100, min(100, self.phero[new_x, new_y]))
+                self.phero[nx, ny] += -p_lvl if is_fooding else p_lvl
+                self.phero[nx, ny] = max(-100, min(100, self.phero[nx, ny]))
 
         # Evaporate pheromones
         self.phero[self.phero > 0] -= 1
