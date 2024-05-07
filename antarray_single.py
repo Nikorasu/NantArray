@@ -54,7 +54,7 @@ class AntArray:
                 elif value in symbols:
                     row_symbols.append(symbols[value])
                 elif 1000 < value < 1028:
-                    color = '\x1b[31m' if 1010 <= value <= 1017 else '\x1b[32m' if 1020 <= value <= 1027 else ''
+                    color = f'\x1b[31m\x1b[48;2;{p_lvl};0;0m' if 1010 <= value <= 1017 else f'\x1b[32m\x1b[48;2;0;{p_lvl};0m' if 1020 <= value <= 1027 else ''
                     arrow = arrows[(value % 10) - 1]
                     row_symbols.append(color + arrow + '\x1b[0m')
                 
