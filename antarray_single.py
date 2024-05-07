@@ -4,20 +4,20 @@ from time import sleep
 
 '''
 Rules for ant pheromone simulation within an array:
-- Main array can contain: empty-0, hive-1001, food-1002, walls-1003, 1010-1017 (fooding ants), 1020-1027 (homing ants) (to indicate direction last moved)
+- Main array can contain: empty-0, hive-1001, food-1002, walls-1003, 1010-1017 (foodingAnt directions), 1020-1027 (homingAnt directions)
 - Pheromones are left as: negative values by foodingAnts, positive by HomingAnts, both decreasing to 0 as they "evaporate"
 - as they move, ants leave "pheromone" values in the corresponding spot in the pheromone array, to indicate whatever it just came from, food or hive
 - ants can either be in fooding-mode or homing-mode, and leave corresponding pheromones as they move
 - ants are processed based on the 8 spaces around them in both arrays, ignoring the spot they're on, and the 3 spots "behind" the ant
-- each "round" ants move onto the space of their target pheromone, with the lowest value, if multiple pheromones present
+- each "round" ants move onto the space of their target pheromone, with the lowest value, if multiple of those pheromones present
 - ants cannot move into spaces already occupied by other ants, the hive, food, or walls.
 - when a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive
 - when target pheromones not detected, continue in same direction with occasional random variation +/- 1 (to avoid getting stuck in a corner)
 - if only the non-targeted pheromone is present (in front), move the towards strongest of that type, to hopefully follow similar-ants
-- when an ant moves onto a spot with an existing pheromone in the phero array, that value will be added to the pheromone the ant will leave in that spot
+- when an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
-symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # for printing simulation state later, ants will be symbols indicating direction
+symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # for printing simulation state
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (40,120)  # size of array - simulation space, fits in terminal
 p_lvl = 20  # initial strength-level of pheromones ants put out

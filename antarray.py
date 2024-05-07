@@ -17,7 +17,7 @@ Rules for ant pheromone simulation within an array:
 - when an ant moves onto a spot with an existing pheromone in the phero array, that value is added to the pheromone the ant would've left
 '''
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
-symbols = {0: ' ', 1: '\x1b[33m⭖\x1b[0m', 2: '\x1b[32m☘\x1b[0m', 3: '▒'} # for printing simulation state later, ants will be symbols indicating direction
+symbols = {0: ' ', 1: '\x1b[33m⭖\x1b[0m', 2: '\x1b[32m☘\x1b[0m', 3: '▒'} # for printing simulation state later
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (40,120)  # size of array - simulation space, fits in terminal
 p_lvl = 20  # initial strength-level of pheromones ants put out
@@ -46,10 +46,10 @@ class AntArray:
 
     def print_state(self):
         output = ""
-        for i, row in enumerate(self.array):
+        for x, row in enumerate(self.array):
             row_symbols = []
-            for j, value in enumerate(row.tolist()):
-                phero_value = self.phero[i][j]
+            for y, value in enumerate(row.tolist()):
+                phero_value = self.phero[x][y]
                 if phero_value > 0:
                     bg_color = f'\x1b[48;2;0;{int(phero_value)};0m' # green
                 elif phero_value < 0:
