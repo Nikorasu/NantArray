@@ -25,8 +25,8 @@ p_lvl = 20  # initial strength-level of pheromones ants put out
 class AntArray:
 
     def __init__(self, size=sim_size, num_ants=10, num_food=1, ant_radius=7, food_radius=sim_size[1]//2):
-        self.array = np.zeros(size, dtype=np.int8)
-        self.phero = np.zeros(size, dtype=np.int8)
+        self.array = np.zeros(size, dtype=np.int16)
+        self.phero = np.zeros(size, dtype=np.int16)
         self.array[[0, -1], :] = self.array[:, [0, -1]] = 3  # place walls on edges of array
         # place hive into middle of array
         hive_x, hive_y = size[0]//2, size[1]//4
@@ -73,7 +73,8 @@ class AntArray:
             ant_direction = (self.array[x, y] % 10) - 1
 
             # Calculate the new position based on the ant's current direction
-            nx, ny = x + directions[ant_direction][0], y + directions[ant_direction][1]
+            #nx, ny = x + directions[ant_direction][0], y + directions[ant_direction][1]
+            nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
             if self.array[nx, ny] == 0:
                 # Update the ant's position
@@ -81,7 +82,7 @@ class AntArray:
                 self.array[nx, ny] = ant_direction + (10 if is_fooding else 20) + 1
                 # Leave pheromones in the new position
                 self.phero[nx, ny] += -p_lvl if is_fooding else p_lvl
-                self.phero[nx, ny] = max(-100, min(100, self.phero[nx, ny]))
+                self.phero[nx, ny] = max(-255, min(255, self.phero[nx, ny]))
 
         # Evaporate pheromones
         self.phero[self.phero > 0] -= 1
