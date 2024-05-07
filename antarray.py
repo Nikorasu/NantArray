@@ -18,11 +18,12 @@ Rules for ant pheromone simulation within an array:
 - when an ant moves onto a spot with an existing pheromone in the phero array, that value is added to the pheromone the ant would've left
 '''
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
-symbols = {0: ' ', 1: '\x1b[33m⭖\x1b[0m', 2: '\x1b[32m☘\x1b[0m', 3: '█'} # for printing simulation state later, ants will be symbols indicating direction
+symbols = {0: ' ', 1: '\x1b[33m⭖\x1b[0m', 2: '\x1b[32m☘\x1b[0m', 3: '▒'} # for printing simulation state later, ants will be symbols indicating direction
 directions = ((0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
+sim_size = (40,120)
 
 class AntArray:
-    def __init__(self, size=(40,120), num_ants=10, num_food=1, ant_radius=7, food_radius=30):
+    def __init__(self, size=sim_size, num_ants=10, num_food=1, ant_radius=7, food_radius=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.int8)
         self.phero = np.zeros(size, dtype=np.int8)
         self.array[[0, -1], :] = self.array[:, [0, -1]] = 3  # place walls on edges of array
