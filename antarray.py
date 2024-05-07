@@ -62,7 +62,6 @@ class AntArray:
                     arrow = arrows[(value % 10) - 1]
                     row_symbols.append(bg_color + color_code + arrow + '\x1b[0m')
             print(''.join(row_symbols))
-        #for row in self.array: print(' '.join([symbols[value] if value in symbols else ('\x1b[33m' if 10 <= value <= 17 else '\x1b[32m') + arrows[(value % 10) - 1] + '\x1b[0m' for value in row.tolist()]))
 
     def update(self):
         # Iterate over all cells with ants
@@ -73,7 +72,6 @@ class AntArray:
             ant_direction = (self.array[x, y] % 10) - 1
 
             # Calculate the new position based on the ant's current direction
-            #nx, ny = x + directions[ant_direction][0], y + directions[ant_direction][1]
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
             if self.array[nx, ny] == 0:
