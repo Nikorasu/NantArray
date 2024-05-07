@@ -67,23 +67,23 @@ class AntArray:
     def update(self):
         # Iterate over all cells with ants
         ant_indices = np.argwhere((self.array >= 10) & (self.array <= 27))
-        for i, j in ant_indices:
+        for x, y in ant_indices:
             # Determine the ant's current state (fooding or homing) and direction
-            is_fooding = 10 <= self.array[i, j] <= 17
-            ant_direction = (self.array[i, j] % 10) - 1
+            is_fooding = 10 <= self.array[x, y] <= 17
+            ant_direction = (self.array[x, y] % 10) - 1
 
             # Calculate the new position based on the ant's current direction
-            new_i, new_j = i + directions[ant_direction][0], j + directions[ant_direction][1]
+            new_x, new_y = x + directions[ant_direction][0], y + directions[ant_direction][1]
 
             # Check if the new position is valid
-            if self.array[new_i, new_j] == 0:
+            if self.array[new_x, new_y] == 0:
                 # Update the ant's position
-                self.array[i, j] = 0
-                self.array[new_i, new_j] = ant_direction + (10 if is_fooding else 20) + 1
+                self.array[x, y] = 0
+                self.array[new_x, new_y] = ant_direction + (10 if is_fooding else 20) + 1
 
                 # Leave pheromones in the new position
-                self.phero[new_i, new_j] += -p_lvl if is_fooding else p_lvl
-                self.phero[new_i, new_j] = max(-100, min(100, self.phero[new_i, new_j]))
+                self.phero[new_x, new_y] += -p_lvl if is_fooding else p_lvl
+                self.phero[new_x, new_y] = max(-100, min(100, self.phero[new_x, new_y]))
 
         # Evaporate pheromones
         self.phero[self.phero > 0] -= 1
