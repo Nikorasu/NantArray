@@ -60,9 +60,8 @@ class AntArray:
                     arrow = arrows[(value % 10) - 1]
                     row_symbols.append(bg_color + color_code + arrow + '\x1b[0m')
             print(''.join(row_symbols))
+        #for row in self.array: print(' '.join([symbols[value] if value in symbols else ('\x1b[33m' if 10 <= value <= 17 else '\x1b[32m') + arrows[(value % 10) - 1] + '\x1b[0m' for value in row.tolist()]))
 
-
-
-#    def print_state(self):
-#        for row in self.array:
-#            print(' '.join([symbols[value] if value in symbols else ('\x1b[33m' if 10 <= value <= 17 else '\x1b[32m') + arrows[(value % 10) - 1] + '\x1b[0m' for value in row.tolist()]))
+if __name__ == '__main__':
+    ant_array = AntArray()
+    ant_array.print_state() # debug print initial state
