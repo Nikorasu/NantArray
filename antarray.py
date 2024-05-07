@@ -22,9 +22,10 @@ symbols = {0: ' ', 1: '\x1b[33m⭖\x1b[0m', 2: '\x1b[32m☘\x1b[0m', 3: '█'} #
 directions = ((0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 
 class AntArray:
-    def __init__(self, size=(40,70), num_ants=10, num_food=1, ant_radius=7, food_radius=30):
+    def __init__(self, size=(40,120), num_ants=10, num_food=1, ant_radius=7, food_radius=30):
         self.array = np.zeros(size, dtype=np.int8)
         self.phero = np.zeros(size, dtype=np.int8)
+        self.array[[0, -1], :] = self.array[:, [0, -1]] = 3  # place walls on edges of array
         # place hive into middle of array
         hive_x, hive_y = size[0]//2, size[1]//4
         self.array[hive_x, hive_y] = 1
@@ -57,7 +58,7 @@ class AntArray:
                     color_code = '\x1b[33m' if 10 <= value <= 17 else '\x1b[32m'
                     arrow = arrows[(value % 10) - 1]
                     row_symbols.append(bg_color + color_code + arrow + '\x1b[0m')
-            print(' '.join(row_symbols))
+            print(''.join(row_symbols))
 
 
 
