@@ -45,6 +45,7 @@ class AntArray:
         self.array[tuple(f_chosen.T)] = 2
 
     def print_state(self):
+        output = ""
         for i, row in enumerate(self.array):
             row_symbols = []
             for j, value in enumerate(row.tolist()):
@@ -58,10 +59,11 @@ class AntArray:
                 if value in symbols:
                     row_symbols.append(bg_color + symbols[value] + '\x1b[0m')
                 else:
-                    color_code = '\x1b[33m' if 10 <= value <= 17 else '\x1b[32m'
+                    color_code = '\x1b[31m' if 10 <= value <= 17 else '\x1b[32m'
                     arrow = arrows[(value % 10) - 1]
                     row_symbols.append(bg_color + color_code + arrow + '\x1b[0m')
-            print(''.join(row_symbols))
+            output += ''.join(row_symbols) + "\n"
+        print(output)
 
     def update(self):
         # Iterate over all cells with ants
