@@ -16,7 +16,7 @@ Rules for ant pheromone simulation within an array:
 - when an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
-symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # for printing simulation state
+symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # empty, hive, food, wall
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (40,120)  # size of array - simulation space, fits in terminal
 p_lvl = 20  # initial strength-level of pheromones ants put out
