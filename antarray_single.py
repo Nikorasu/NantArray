@@ -67,6 +67,11 @@ class AntArray:
             # Determine the ant's current state (fooding or homing) and direction
             is_fooding = 1010 <= self.array[x, y] <= 1017
             ant_direction = self.array[x, y] % 10
+            # get a list of values around ant, except the position directly behind current direction (direction+4)%8
+            #surrounds = [self.array[x + dx, y + dy] if (dx, dy) != directions[(ant_direction + 4) % 8] else 1003 for dx, dy in directions]
+            #surrounds = self.array[(x + np.array(directions)[:, 0]) % self.array.shape[0], (y + np.array(directions)[:, 1]) % self.array.shape[1]]
+            surrounds = self.array[x + np.array(directions)[:, 0], y + np.array(directions)[:, 1]].tolist()
+            surrounds[(ant_direction + 4) % 8] = 1003  # replace direction+4 with 1003 to ignore it
             # one-third chance for the ant to turn left or right
             ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
             # Calculate the new position based on the ant's current direction
