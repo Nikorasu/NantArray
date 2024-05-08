@@ -60,7 +60,7 @@ class AntArray:
                     row_symbols.append(bg_color + symbols[value] + '\x1b[0m')
                 else:
                     color_code = '\x1b[31m' if 10 <= value <= 17 else '\x1b[32m'
-                    arrow = arrows[(value % 10) - 1]
+                    arrow = arrows[(value % 10)]
                     row_symbols.append(bg_color + color_code + arrow + '\x1b[0m')
             output += ''.join(row_symbols) + "\n"
         print(output)
@@ -71,15 +71,15 @@ class AntArray:
         for x, y in ant_indices:
             # Determine the ant's current state (fooding or homing) and direction
             is_fooding = 10 <= self.array[x, y] <= 17
-            ant_direction = (self.array[x, y] % 10) - 1
-
+            ant_direction = (self.array[x, y] % 10)# - 1
+            ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
             if self.array[nx, ny] == 0:
                 # Update the ant's position
                 self.array[x, y] = 0
-                self.array[nx, ny] = ant_direction + (10 if is_fooding else 20) + 1
+                self.array[nx, ny] = ant_direction + (10 if is_fooding else 20)# + 1
                 # Leave pheromones in the new position
                 self.phero[nx, ny] += -p_lvl if is_fooding else p_lvl
                 self.phero[nx, ny] = max(-255, min(255, self.phero[nx, ny]))
