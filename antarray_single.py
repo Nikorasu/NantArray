@@ -70,10 +70,17 @@ class AntArray:
             # get a list of values around ant, except the position directly behind current direction (direction+4)%8
             #surrounds = [self.array[x + dx, y + dy] if (dx, dy) != directions[(ant_direction + 4) % 8] else 1003 for dx, dy in directions]
             #surrounds = self.array[(x + np.array(directions)[:, 0]) % self.array.shape[0], (y + np.array(directions)[:, 1]) % self.array.shape[1]]
-            surrounds = self.array[x + np.array(directions)[:, 0], y + np.array(directions)[:, 1]].tolist()
+            surrounds = self.array[x + np.array(directions)[:, 0], y + np.array(directions)[:, 1]]#.tolist()
             surrounds[(ant_direction + 4) % 8] = 1003  # replace direction+4 with 1003 to ignore it
-            # one-third chance for the ant to turn left or right
-            ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
+            if is_fooding and any(0<i<1000 for i in surrounds): # possibly not working right
+                # set ant_direction to index of surrounds value that's closest to 0, without being 0
+                ant_direction = np.argmin(np.where(surrounds > 0, surrounds, np.inf))
+            elif is_fooding and any(0 > i > -1000 for i in surrounds):  #-1000 < surrounds.any() < 0:
+                # set ant_direction to index of most negative surrounds value
+                ant_direction = np.argmin(surrounds)
+            else:
+                # one-third chance for the ant to turn left or right
+                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
