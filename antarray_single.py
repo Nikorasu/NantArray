@@ -7,7 +7,7 @@ Rules for ant pheromone simulation within an array:
 - Main array can contain: empty-0, hive-1001, food-1002, walls-1003, 1010-1017 (foodingAnt directions), 1020-1027 (homingAnt directions)
 - Pheromones are left as: negative values by foodingAnts, positive by HomingAnts, both decreasing to 0 as they "evaporate"
 - ants can either be in fooding-mode or homing-mode, and leave corresponding pheromones as they move, to indicate where they came from
-- ants are processed based on the 8 spaces around them in both arrays, ignoring the spot they're on, and the 3 spots "behind" the ant
+- ants decide to move based on the spaces around them in the array, ignoring the spot they're on, and the spot "behind" the ant
 - each "round" ants move onto the space of their target pheromone, with the lowest value, if multiple of those pheromones present
 - ants cannot move into spaces already occupied by other ants, the hive, food, or walls
 - when a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive
