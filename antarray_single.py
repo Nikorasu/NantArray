@@ -56,7 +56,6 @@ class AntArray:
                     color = f'\x1b[31m\x1b[48;2;{p_lvl};0;0m' if 1010 <= value <= 1017 else f'\x1b[32m\x1b[48;2;0;{p_lvl};0m' if 1020 <= value <= 1027 else ''
                     arrow = arrows[value % 10]
                     row_symbols.append(color + arrow + '\x1b[0m')
-                
             output += ''.join(row_symbols) + "\n"
         print(output)
 
@@ -67,17 +66,15 @@ class AntArray:
             # Determine the ant's current state (fooding or homing) and direction
             is_fooding = 1010 <= self.array[x, y] <= 1017
             ant_direction = self.array[x, y] % 10
-            # get a list of values around ant, except the position directly behind current direction (direction+4)%8
             #surrounds = [self.array[x + dx, y + dy] if (dx, dy) != directions[(ant_direction + 4) % 8] else 1003 for dx, dy in directions]
             #surrounds = self.array[(x + np.array(directions)[:, 0]) % self.array.shape[0], (y + np.array(directions)[:, 1]) % self.array.shape[1]]
             surrounds = self.array[x + np.array(directions)[:, 0], y + np.array(directions)[:, 1]]#.tolist()
             surrounds[(ant_direction + 4) % 8] = 1003  # replace direction+4 with 1003 to ignore it
-            if is_fooding and any(0<i<1000 for i in surrounds): # possibly not working right
-                # set ant_direction to index of surrounds value that's closest to 0, without being 0
-                ant_direction = np.argmin(np.where(surrounds > 0, surrounds, np.inf))
-            elif is_fooding and any(0 > i > -1000 for i in surrounds):  #-1000 < surrounds.any() < 0:
-                # set ant_direction to index of most negative surrounds value
-                ant_direction = np.argmin(surrounds)
+            # Determine the ant's new direction  based on the surrounding pheromones
+            if is_fooding and any(0<i<1000 for i in surrounds): #follow food phero in direction originated
+                ant_direction = np.argmin(np.where(surrounds > 0, surrounds, np.inf)) # set ant_direction to index of surrounds value that's closest to 0
+            elif is_fooding and any(0 > i > -1000 for i in surrounds): #follow like paths (results in circles)
+                ant_direction = np.argmin(surrounds) # set ant_direction to index of most negative surrounds value
             else:
                 # one-third chance for the ant to turn left or right
                 ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
