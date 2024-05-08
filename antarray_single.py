@@ -19,11 +19,11 @@ arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for 
 symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # empty, hive, food, wall
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (40,120)  # size of array - simulation space, fits in terminal
-p_lvl = 20  # initial strength-level of pheromones ants put out
+p_lvl = 40  # initial strength-level of pheromones ants put out
 
 class AntArray:
 
-    def __init__(self, size=sim_size, num_ants=10, num_food=1, ant_radius=7, food_radius=sim_size[1]//2):
+    def __init__(self, size=sim_size, num_ants=20, num_food=1, ant_radius=8, food_radius=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.int16)
         self.array[[0, -1], :] = self.array[:, [0, -1]] = 1003  # place walls on edges of array
         # place hive into middle of array
@@ -60,6 +60,10 @@ class AntArray:
         print(output)
 
     def update(self):
+        # use scent_bubble function on indexs with hive and food, np.argwhere(self.array == 1001), np.argwhere(self.array == 1002), each
+        self.array = scent_bubble(self.array, tuple(np.argwhere(self.array == 1001)[0]), negative=True)
+        for efood in np.argwhere(self.array == 1002):
+            self.array = scent_bubble(self.array, efood)
         # Iterate over all cells with ants
         ant_indices = np.argwhere((self.array >= 1010) & (self.array <= 1027))
         for x, y in ant_indices:
@@ -69,15 +73,31 @@ class AntArray:
             #surrounds = [self.array[x + dx, y + dy] if (dx, dy) != directions[(ant_direction + 4) % 8] else 1003 for dx, dy in directions]
             #surrounds = self.array[(x + np.array(directions)[:, 0]) % self.array.shape[0], (y + np.array(directions)[:, 1]) % self.array.shape[1]]
             surrounds = self.array[x + np.array(directions)[:, 0], y + np.array(directions)[:, 1]]#.tolist()
-            surrounds[(ant_direction + 4) % 8] = 1003  # replace direction+4 with 1003 to ignore it
+            surrounds[(ant_direction + 4) % 8] = 0 if surrounds[(ant_direction + 4) % 8] < 1000 else 1003 #ignore phero behind
+            sees = [surrounds[ant_direction]]
+            for offset in range(1, 4): # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
+                sees.append(surrounds[(ant_direction + offset)%8])
+                sees.append(surrounds[(ant_direction - offset)%8])
             # Determine the ant's new direction  based on the surrounding pheromones
+            if is_fooding and 1002 in surrounds: #if fooding and food present, change to homing
+                self.array[x, y] = (self.array[x, y] % 10) + 1020
+                is_fooding = False
+            elif not is_fooding and 1001 in surrounds: #if homing and hive present, change to fooding
+                self.array[x, y] = (self.array[x, y] % 10) + 1010
+                is_fooding = True
+            
             if is_fooding and any(0<i<1000 for i in surrounds): #follow food phero in direction originated
                 ant_direction = np.argmin(np.where(surrounds > 0, surrounds, np.inf)) # set ant_direction to index of surrounds value that's closest to 0
-            elif is_fooding and any(0 > i > -1000 for i in surrounds): #follow like paths (results in circles)
-                ant_direction = np.argmin(surrounds) # set ant_direction to index of most negative surrounds value
+            #elif is_fooding and any(0 > i > -1000 for i in surrounds): #follow like paths (results in circles)
+            #    ant_direction = np.argmin(surrounds) # set ant_direction to index of most negative surrounds value
+            elif not is_fooding and any(0 > i > -1000 for i in surrounds): #move in direction of negative closest to 0
+                ant_direction = np.argmax(np.where(surrounds < 0, surrounds, -np.inf))
+            #if all of sees[0:3] are 1003, randomly choose an index from surrounds that is below 1000
+            elif all(i == 1003 for i in sees[0:3]):
+                ant_direction = np.random.choice(np.where(surrounds < 1000)[0])
             else:
                 # one-third chance for the ant to turn left or right
-                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
+                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8  # [1/8, 3/4, 1/8]
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
@@ -90,6 +110,23 @@ class AntArray:
         # Evaporate pheromones
         self.array[(0 < self.array) & (self.array < 1000)] -= 1
         self.array[0 > self.array] += 1
+
+def scent_bubble(arr, center, radius=10, negative=False):
+    center_y, center_x = center
+    y_dim, x_dim = arr.shape
+    for x in range(max(0, center_x-radius), min(x_dim, center_x+radius+1)):
+        for y in range(max(0, center_y-radius), min(y_dim, center_y+radius+1)):
+            if arr[y, x] > 1000 or (arr[y,x] > 0 and negative) or (arr[y,x]<0 and not negative):  # If the current point is an ant, skip it
+                continue
+            #dist = abs(x - center_x) + abs(y - center_y)
+            dist = np.sqrt((x - center_x)**2 + (y - center_y)**2)  # Euclidean distance
+            if dist <= radius:
+                value = int(dist)
+                if negative:
+                    arr[y, x] = min(arr[y, x], -value)
+                else:
+                    arr[y, x] = max(arr[y, x], value)
+    return arr
 
 if __name__ == '__main__':
     ant_array = AntArray()
