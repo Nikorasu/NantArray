@@ -69,7 +69,6 @@ class AntArray:
             ant_direction = self.array[x, y] % 10
             # one-third chance for the ant to turn left or right
             ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8
-            #ant_direction = (ant_direction + turn_direction) % 8
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
@@ -80,8 +79,8 @@ class AntArray:
                 self.array[nx, ny] = ant_direction + (1010 if is_fooding else 1020)
 
         # Evaporate pheromones
-        self.array[(0 < self.array) & (self.array < 1000)] -= 1  # 0 < self.array < 1000
-        self.array[0 > self.array] += 1  # 0 > self.array
+        self.array[(0 < self.array) & (self.array < 1000)] -= 1
+        self.array[0 > self.array] += 1
 
 if __name__ == '__main__':
     ant_array = AntArray()
