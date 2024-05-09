@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 from time import sleep
+import os
 
 '''
 Rules for ant pheromone simulation within an array:
@@ -18,7 +19,8 @@ Rules for ant pheromone simulation within an array:
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
 symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # empty, hive, food, wall
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
-sim_size = (40,120)  # size of array - simulation space, fits in terminal
+#sim_size = (40,120)  # size of array - simulation space, fits in terminal
+sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 p_lvl = 50  # initial strength-level of pheromones ants put out
 
 class AntArray:
@@ -57,7 +59,7 @@ class AntArray:
                     arrow = arrows[value % 10]
                     row_symbols.append(color + arrow + '\x1b[0m')
             output += ''.join(row_symbols) + "\n"
-        print(output)
+        print(output[:-1], end='\r')
 
     def update(self):
         # use scent_bubble function on indexs with hive and food, np.argwhere(self.array == 1001), np.argwhere(self.array == 1002), each
@@ -133,5 +135,5 @@ if __name__ == '__main__':
     # Main simulation loop
     while True:
         ant_array.print_state()
-        sleep(0.2)
+        sleep(0.1)
         ant_array.update()
