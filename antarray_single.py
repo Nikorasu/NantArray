@@ -19,11 +19,11 @@ arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for 
 symbols = {0: ' ', 1001: '\x1b[33m⭖\x1b[0m', 1002: '\x1b[32m☘\x1b[0m', 1003: '▒'} # empty, hive, food, wall
 directions = ((-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)) # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (40,120)  # size of array - simulation space, fits in terminal
-p_lvl = 40  # initial strength-level of pheromones ants put out
+p_lvl = 50  # initial strength-level of pheromones ants put out
 
 class AntArray:
 
-    def __init__(self, size=sim_size, num_ants=20, num_food=1, ant_radius=8, food_radius=sim_size[1]//2):
+    def __init__(self, size=sim_size, num_ants=20, num_food=1, ant_radius=10, food_radius=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.int16)
         self.array[[0, -1], :] = self.array[:, [0, -1]] = 1003  # place walls on edges of array
         # place hive into middle of array
@@ -61,9 +61,9 @@ class AntArray:
 
     def update(self):
         # use scent_bubble function on indexs with hive and food, np.argwhere(self.array == 1001), np.argwhere(self.array == 1002), each
-        self.array = scent_bubble(self.array, tuple(np.argwhere(self.array == 1001)[0]), negative=True)
+        self.array = scent_bubble(self.array, tuple(np.argwhere(self.array == 1001)[0]), radius=15, negative=True)
         for efood in np.argwhere(self.array == 1002):
-            self.array = scent_bubble(self.array, efood)
+            self.array = scent_bubble(self.array, efood, radius=10)
         # Iterate over all cells with ants
         ant_indices = np.argwhere((self.array >= 1010) & (self.array <= 1027))
         for x, y in ant_indices:
