@@ -39,7 +39,7 @@ class AntArray:
         a_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances <= ant_radius))
         a_chosen = a_indices[np.random.choice(a_indices.shape[0], num_ants, replace=False)]
         self.array[a_chosen[:, 0], a_chosen[:, 1], 0] = np.random.randint(10, 18, num_ants)
-        #self.array[a_chosen[:, 0], a_chosen[:, 1], 1] = p_lvl
+        #self.array[a_chosen[:, 0], a_chosen[:, 1], 1] = p_lvl  # not needed, update handles now
         # place food sources into array, randomly outside of food_radius from the hive
         f_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances > food_radius))
         f_chosen = f_indices[np.random.choice(f_indices.shape[0], num_food, replace=False)]
@@ -85,7 +85,7 @@ class AntArray:
             # Create a 3D surrounds array
             surrounds = np.zeros((8, 3))
             for i, (dx, dy) in enumerate(directions):
-                surrounds[i] = self.array[x + dx, y + dy]
+                if (dx, dy) != directions[(ant_direction + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
             # Create a 1D sees array
             sees = np.zeros(8)
             sees[0] = surrounds[ant_direction, 0]  # What's in front of the ant first
@@ -99,7 +99,7 @@ class AntArray:
                 self.array[x, y, 0] = self.array[x, y, 0] - 10 #(self.array[x, y] % 10) + 10
                 is_fooding = True
             # Check if 3 or more values in surround's first layer are walls, and if they are, randomly choose one of the directions which is 0
-            if np.sum(surrounds[:, 0] == 3) >= 3:
+            if np.sum(sees[:3] == 3) > 2:
                 ant_direction = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
             elif is_fooding and any(0 < i <= 255 for i in surrounds[:, 2]): #follow food phero in direction originated
                 ant_direction = np.argmin(np.where(surrounds[:, 2] > 0, surrounds[:, 2], np.inf))
@@ -110,6 +110,9 @@ class AntArray:
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
+            if self.array[nx, ny, 0] != 0:
+                ant_direction = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+                nx, ny = np.add([x,y], directions[ant_direction])
             if self.array[nx, ny, 0] == 0:
                 # Update the ant's position
                 self.array[x, y, 0] = 0
@@ -119,7 +122,6 @@ class AntArray:
         # Evaporate pheromones
         mask = self.array[:, :, 1:3] > 0
         self.array[:, :, 1:3][mask] -= 1
-
 
 if __name__ == '__main__':
     ant_array = AntArray()
