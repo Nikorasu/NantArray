@@ -21,6 +21,7 @@ symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # em
 directions = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))  # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 p_lvl = 100  # initial strength-level of pheromones ants put out
+print('\n' * (sim_size[0]-1))  # preserves terminal
 
 class AntArray:
 
@@ -86,10 +87,9 @@ class AntArray:
                 if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
             sees = np.zeros((7, 3)) # Create a 3D sees array, ordered by front of ant, left, right
             sees[0] = surrounds[ant_dir]  # What's in front of the ant first
-            seekey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir + these  directions[(ant_dir + seekey[whichever i of sees]) % 8]
+            seekey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + seekey[targets[0]]) % 8
             for i, offset in enumerate(seekey):  # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
                 sees[i] = surrounds[(ant_dir + offset)%8]  # sees[2*offset-1]
-                #sees[2*offset-1] = surrounds[(ant_dir - offset)%8]  # sees[2*offset]
             # Begin the logic for determining the ant's new direction
             if is_fooding and 2 in surrounds[:, 0]: #if fooding and food present, change to homing
                 ant_dir = (ant_dir + 4) % 8
@@ -101,10 +101,6 @@ class AntArray:
                 is_fooding = True
             elif np.sum(sees[:3] == 3) > 2: # If walls directly ahead, turn randomly
                 ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
-            #elif is_fooding and any(0 < i <= 255 for i in surrounds[:, 2]): #follow food phero in direction originated
-            #    ant_dir = np.argmin(np.where(surrounds[:, 2] > 0, surrounds[:, 2], np.inf))
-            #elif not is_fooding and any(0 < i <= 255 for i in surrounds[:, 1]): #follow hive phero in direction originated
-            #    ant_dir = np.argmin(np.where(surrounds[:, 1] > 0, surrounds[:, 1], np.inf))
             elif is_fooding and any(0 < i <= 255 for i in sees[:3, 2]):
                 current_value = self.array[x, y, 2]
                 targets = np.where((sees[:3, 2] > 0) & (sees[:3, 2] == current_value - 1))[0]
