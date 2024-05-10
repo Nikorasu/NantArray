@@ -45,7 +45,7 @@ class AntArray:
         self.array[f_chosen[:, 0], f_chosen[:, 1], 0] = 2
     
     def print_state(self):
-        output = ""
+        output = "\x1b[H"
         for i, row in enumerate(self.array[:, :, 0]):  # iterate over rows of layer 0
             row_symbols = []
             for j, value in enumerate(row):  # iterate over each value in the row
