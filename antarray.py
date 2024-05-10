@@ -80,56 +80,57 @@ class AntArray:
         ant_indices = np.argwhere((self.array[:, :, 0] >= 10) & (self.array[:, :, 0] <= 27))
         for x, y in ant_indices:
             is_fooding = 10 <= self.array[x, y, 0] <= 17
-            ant_direction = self.array[x, y, 0] % 10
+            ant_dir = self.array[x, y, 0] % 10
             surrounds = np.zeros((8, 3)) # Create a 3D surrounds array
             for i, (dx, dy) in enumerate(directions):
-                if (dx, dy) != directions[(ant_direction + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
-            sees = np.zeros(8) # Create a 1D sees array  - NEEDS TO BE 3D next
-            sees[0] = surrounds[ant_direction, 0]  # What's in front of the ant first
-            for offset in range(1, 4):  # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
-                sees[2*offset-1] = surrounds[(ant_direction + offset)%8, 0]
-                sees[2*offset] = surrounds[(ant_direction - offset)%8, 0]
+                if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
+            sees = np.zeros((7, 3)) # Create a 3D sees array, ordered by front of ant, left, right
+            sees[0] = surrounds[ant_dir]  # What's in front of the ant first
+            seekey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir + these  directions[(ant_dir + seekey[whichever i of sees]) % 8]
+            for i, offset in enumerate(seekey):  # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
+                sees[i] = surrounds[(ant_dir + offset)%8]  # sees[2*offset-1]
+                #sees[2*offset-1] = surrounds[(ant_dir - offset)%8]  # sees[2*offset]
             # Begin the logic for determining the ant's new direction
             if is_fooding and 2 in surrounds[:, 0]: #if fooding and food present, change to homing
-                ant_direction = (ant_direction + 4) % 8
-                self.array[x, y, 0] = ant_direction + 20 #(self.array[x, y] % 10) + 20
+                ant_dir = (ant_dir + 4) % 8
+                self.array[x, y, 0] = ant_dir + 20 #(self.array[x, y] % 10) + 20
                 is_fooding = False
             elif not is_fooding and 1 in surrounds[:, 0]: #if homing and hive present, change to fooding
-                ant_direction = (ant_direction + 4) % 8
-                self.array[x, y, 0] = ant_direction + 10 #self.array[x, y, 0] = self.array[x, y, 0] - 10
+                ant_dir = (ant_dir + 4) % 8
+                self.array[x, y, 0] = ant_dir + 10 #self.array[x, y, 0] = self.array[x, y, 0] - 10
                 is_fooding = True
             elif np.sum(sees[:3] == 3) > 2: # If walls directly ahead, turn randomly
-                ant_direction = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+                ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
             #elif is_fooding and any(0 < i <= 255 for i in surrounds[:, 2]): #follow food phero in direction originated
-            #    ant_direction = np.argmin(np.where(surrounds[:, 2] > 0, surrounds[:, 2], np.inf))
+            #    ant_dir = np.argmin(np.where(surrounds[:, 2] > 0, surrounds[:, 2], np.inf))
             #elif not is_fooding and any(0 < i <= 255 for i in surrounds[:, 1]): #follow hive phero in direction originated
-            #    ant_direction = np.argmin(np.where(surrounds[:, 1] > 0, surrounds[:, 1], np.inf))
-            elif is_fooding and any(0 < i <= 255 for i in surrounds[:, 2]):
+            #    ant_dir = np.argmin(np.where(surrounds[:, 1] > 0, surrounds[:, 1], np.inf))
+            elif is_fooding and any(0 < i <= 255 for i in sees[:3, 2]):
                 current_value = self.array[x, y, 2]
-                target_indices = np.where((surrounds[:, 2] > 0) & (surrounds[:, 2] == current_value - 1))[0]
-                if len(target_indices) > 0:
-                    ant_direction = target_indices[0]
+                targets = np.where((sees[:3, 2] > 0) & (sees[:3, 2] == current_value - 1))[0]
+                if len(targets) > 0:
+                    ant_dir = (ant_dir + seekey[targets[0]]) % 8
                 else:
-                    ant_direction = np.argmin(np.where(surrounds[:, 2] > 0, surrounds[:, 2], np.inf))
-            elif not is_fooding and any(0 < i <= 255 for i in surrounds[:, 1]):
+                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:3, 2] > 0, sees[:3, 2], np.inf))]) % 8
+            elif not is_fooding and any(0 < i <= 255 for i in sees[:3, 1]):
                 current_value = self.array[x, y, 1]
-                target_indices = np.where((surrounds[:, 1] > 0) & (surrounds[:, 1] == current_value - 1))[0]
-                if len(target_indices) > 0:
-                    ant_direction = target_indices[0]
+                targets = np.where((sees[:3, 1] > 0) & (sees[:3, 1] == current_value - 1))[0]
+                if len(targets) > 0:
+                    ant_dir = (ant_dir + seekey[targets[0]]) % 8
                 else:
-                    ant_direction = np.argmin(np.where(surrounds[:, 1] > 0, surrounds[:, 1], np.inf))
+                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:3, 1] > 0, sees[:3, 1], np.inf))]) % 8
             else: # one-third chance for the ant to turn left or right
-                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/10, 4/5, 1/10])) % 8
+                ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=[1/10, 4/5, 1/10])) % 8
             # Calculate the new position based on the ant's current direction
-            nx, ny = np.add([x,y], directions[ant_direction])
+            nx, ny = np.add([x,y], directions[ant_dir])
             # Check if the new position is valid
             if self.array[nx, ny, 0] != 0:
-                ant_direction = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
-                nx, ny = np.add([x,y], directions[ant_direction])
+                ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+                nx, ny = np.add([x,y], directions[ant_dir])
             if self.array[nx, ny, 0] == 0:
                 # Update the ant's position
                 self.array[x, y, 0] = 0
-                self.array[nx, ny, 0] = ant_direction + (10 if is_fooding else 20)
+                self.array[nx, ny, 0] = ant_dir + (10 if is_fooding else 20)
                 # Add pheromones to the layer corresponding to the ant's state
                 self.array[x, y, 1 if is_fooding else 2] = min(255, self.array[x, y, 1 if is_fooding else 2] + p_lvl)
         # Evaporate pheromones
