@@ -101,22 +101,22 @@ class AntArray:
                 ant_dir = (ant_dir + 4) % 8
                 self.array[x, y, 0] = ant_dir + 10 #self.array[x, y, 0] = self.array[x, y, 0] - 10
                 is_fooding = True
-            elif np.sum(sees[:3] == 3) > 2: # If walls directly ahead, turn randomly
+            elif np.sum(sees[:5] == 3) > 2: # If walls directly ahead, turn randomly
                 ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
-            elif is_fooding and any(0 < i <= 255 for i in sees[:3, 2]):
+            elif is_fooding and any(0 < i <= 255 for i in sees[:5, 2]):
                 current_value = self.array[x, y, 2]
-                targets = np.where((sees[:3, 2] > 0) & (sees[:3, 2] == current_value - 1))[0]
+                targets = np.where((sees[:5, 2] > 0) & (sees[:5, 2] == current_value - 1))[0]
                 if len(targets) > 0:
                     ant_dir = (ant_dir + seekey[targets[0]]) % 8
                 else:
-                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:3, 2] > 0, sees[:3, 2], np.inf))]) % 8
-            elif not is_fooding and any(0 < i <= 255 for i in sees[:3, 1]):
+                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:5, 2] > 0, sees[:5, 2], np.inf))]) % 8
+            elif not is_fooding and any(0 < i <= 255 for i in sees[:5, 1]):
                 current_value = self.array[x, y, 1]
-                targets = np.where((sees[:3, 1] > 0) & (sees[:3, 1] == current_value - 1))[0]
+                targets = np.where((sees[:5, 1] > 0) & (sees[:5, 1] == current_value - 1))[0]
                 if len(targets) > 0:
                     ant_dir = (ant_dir + seekey[targets[0]]) % 8
                 else:
-                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:3, 1] > 0, sees[:3, 1], np.inf))]) % 8
+                    ant_dir = (ant_dir + seekey[np.argmin(np.where(sees[:5, 1] > 0, sees[:5, 1], np.inf))]) % 8
             else: # one-third chance for the ant to turn left or right
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=[1/10, 4/5, 1/10])) % 8
             # Calculate the new position based on the ant's current direction
