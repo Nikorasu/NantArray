@@ -18,13 +18,14 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
+
+wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
+p_lvl = 100  # initial strength-level of pheromones ants put out
+sees = 5  # how much of the ant's view it can see, can only be 3, 5 or 7
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # empty, hive, food, wall
 directions = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))  # up, up-right, right, down-right, down, down-left, left, up-left
 sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
-wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
-p_lvl = 100  # initial strength-level of pheromones ants put out
-sees = 5  # how much of the ant's view it can see, can only be 3, 5 or 7
 print('\n' * (sim_size[0]-1))  # preserves terminal
 
 class AntArray:
@@ -62,7 +63,6 @@ class AntArray:
                     arrow = arrows[value % 10]
                     row_symbols.append(color + bgcol + arrow + '\x1b[0m')
                 else:
-                    # merge the pheromone values into a single RGB color code
                     row_symbols.append(f'\x1b[48;2;{int(self.array[i, j, 1])};{int(self.array[i, j, 2])};0m \x1b[0m')
             output += ''.join(row_symbols) + "\n"
         print(output[:-1], end='\r')
