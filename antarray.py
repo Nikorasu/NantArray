@@ -93,7 +93,7 @@ class AntArray:
             vkey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + vkey[targets[0]]) % 8
             for i, offset in enumerate(vkey):  # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
                 view[i] = surrounds[(ant_dir + offset)%8]  # view[2*offset-1]
-            # Begin the logic for determining the ant's new direction
+            # Switch mode and direction when reached food or hive
             if is_fooding and 2 in surrounds[:, 0]: #if fooding and food present, change to homing
                 ant_dir = (ant_dir + 4) % 8
                 self.array[x, y, 0] = ant_dir + 20 #(self.array[x, y] % 10) + 20
@@ -104,6 +104,7 @@ class AntArray:
                 is_fooding = True
             elif np.sum(view[:sees] == 3) > 2: # If walls directly ahead, turn randomly
                 ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+            # Determine direction based on pheromones
             elif is_fooding and any(0 < i <= 255 for i in view[:sees, 2]):
                 current_value = self.array[x, y, 2]
                 targets = np.where((view[:sees, 2] > 0) & (view[:sees, 2] == current_value - 1))[0]
@@ -132,6 +133,8 @@ class AntArray:
                 self.array[nx, ny, 0] = ant_dir + (10 if is_fooding else 20)
                 # Add pheromones to the layer corresponding to the ant's state
                 self.array[x, y, 1 if is_fooding else 2] = min(255, self.array[x, y, 1 if is_fooding else 2] + p_lvl)
+                # -1 from opposing pheromone under the ant's position, MIGHT resolve circles sooner?
+                self.array[x, y, 2 if is_fooding else 1] = max(0, self.array[x, y, 2 if is_fooding else 1] - 1)
         # Evaporate pheromones
         mask = self.array[:, :, 1:3] > 0
         self.array[:, :, 1:3][mask] -= 1
