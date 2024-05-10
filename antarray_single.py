@@ -9,11 +9,11 @@ Rules for ant pheromone simulation within an array:
 - Pheromones are left as: negative values by foodingAnts, positive by HomingAnts, both decreasing to 0 as they "evaporate"
 - ants can either be in fooding-mode or homing-mode, and leave corresponding pheromones as they move, to indicate where they came from
 - ants decide to move based on the spaces around them in the array, ignoring the spot they're on, and the spot "behind" the ant
-- each "round" ants move onto the space of their target pheromone, with the lowest value, if multiple of those pheromones present
+- each "round" ants move onto the space of their target pheromone with the lowest value, if multiple of those pheromones present
 - ants cannot move into spaces already occupied by other ants, the hive, food, or walls
 - when a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive
 - when target pheromones not detected, continue in same direction with occasional random variation +/- 1 (to avoid getting stuck in a corner)
-- if only the non-targeted pheromone is present (in front), move the towards strongest of that type, to hopefully follow similar-ants
+- if only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants
 - when an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔') # for printing simulation state later, ants will be arrows indicating direction
@@ -90,8 +90,6 @@ class AntArray:
             
             if is_fooding and any(0<i<1000 for i in surrounds): #follow food phero in direction originated
                 ant_direction = np.argmin(np.where(surrounds > 0, surrounds, np.inf)) # set ant_direction to index of surrounds value that's closest to 0
-            #elif is_fooding and any(0 > i > -1000 for i in surrounds): #follow like paths (results in circles)
-            #    ant_direction = np.argmin(surrounds) # set ant_direction to index of most negative surrounds value
             elif not is_fooding and any(0 > i > -1000 for i in surrounds): #move in direction of negative closest to 0
                 ant_direction = np.argmax(np.where(surrounds < 0, surrounds, -np.inf))
             #if all of sees[0:3] are 1003, randomly choose an index from surrounds that is below 1000
@@ -99,7 +97,7 @@ class AntArray:
                 ant_direction = np.random.choice(np.where(surrounds < 1000)[0])
             else:
                 # one-third chance for the ant to turn left or right
-                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/6, 2/3, 1/6])) % 8  # [1/8, 3/4, 1/8]
+                ant_direction = (ant_direction + np.random.choice([-1, 0, 1], p=[1/8, 3/4, 1/8])) % 8  # [1/8, 3/4, 1/8] [1/6, 2/3, 1/6]
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_direction])
             # Check if the new position is valid
