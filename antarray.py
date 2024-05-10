@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import numpy as np
 from time import sleep
-import os, sys
+import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
-else: import termios, tty, select # for Linux keyboard input
+else: import sys, termios, tty, select # for Linux keyboard input
 
 '''
 Rules for ant pheromone simulation within an array:
