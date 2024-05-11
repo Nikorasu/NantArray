@@ -12,6 +12,7 @@ Rules for ant pheromone simulation within an array:
 - Ants decide to move based on the spaces around them, with priority to spaces in front of ant.
 - Each "round" ants move onto the space of their target pheromone. If multiple of those pheromones present, decide behavior.
 - Ants cannot move into spaces already occupied by other ants, the hive, food, or walls.
+- Ants start with a pseudo-age-limit of 255, but for now, only decreases when ants moves over somewhere with both pheromones.
 - When a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive. Age resets.
 - When target pheromones not detected, continue in same direction with occasional random variation +/- 1.
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants.
