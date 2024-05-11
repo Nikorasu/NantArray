@@ -53,20 +53,21 @@ class AntArray:
             self.array[self.hive[0] + new_pos[0], self.hive[1] + new_pos[1], 0] = 10 + dir_idx
             self.array[self.hive[0] + new_pos[0], self.hive[1] + new_pos[1], 3] = 255
     
-    def scent_bubble(self, center, radius=10, layer=1):
+    def scent_bubble(self, center, radius=10, layer=1, cmax=255):
         center_y, center_x = center
         y_dim, x_dim, _ = self.array.shape
         for x in range(max(0, center_x-radius), min(x_dim, center_x+radius+1)):
             for y in range(max(0, center_y-radius), min(y_dim, center_y+radius+1)):
                 dist = np.sqrt((x - center_x)**2 + (y - center_y)**2)  # Euclidean distance
                 if dist <= radius:
-                    self.array[y, x, layer] = max(self.array[y, x, layer], int(radius-dist))
+                    scaled_dist = int((1 - dist/radius) * cmax)
+                    self.array[y, x, layer] = max(self.array[y, x, layer], scaled_dist) if cmax else max(self.array[y, x, layer], int(radius-dist))
     
     def update(self):
         for hive in np.argwhere(self.array[:, :, 0] == 1):
-            self.scent_bubble(hive, radius=30, layer=1)
+            self.scent_bubble(hive, radius=30, layer=1, cmax=200)
         for efood in np.argwhere(self.array[:, :, 0] == 2):
-            self.scent_bubble(efood, radius=15, layer=2)
+            self.scent_bubble(efood, radius=15, layer=2, cmax=100)
         ant_indices = np.argwhere((self.array[:, :, 0] >= 10) & (self.array[:, :, 0] <= 27))
         if len(ant_indices) < ants:
             self.spawn_ant()
