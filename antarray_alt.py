@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 from time import sleep
+from scipy.ndimage import convolve
 import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
 else: import sys, termios, tty, select # for Linux keyboard input
@@ -20,7 +21,7 @@ Rules for ant pheromone simulation within an array:
 '''
 ants = 42
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
-p_lvl = 100  # initial strength-level of pheromones ants put out
+p_lvl = 200  # initial strength-level of pheromones ants put out
 sees = 3  # how much of the ant's view it can see, can only be 3, 5 or 7
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # empty, hive, food, wall
@@ -63,11 +64,34 @@ class AntArray:
                     scaled_dist = int((1 - dist/radius) * cmax)
                     self.array[y, x, layer] = max(self.array[y, x, layer], scaled_dist) if cmax else max(self.array[y, x, layer], int(radius-dist))
     
+    '''def diffuse(self, weight=.9):
+        for i in range(1, 3):  # Only apply to layers 1 and 2
+            layer = self.array[:, :, i]
+            up = np.roll(layer, 1, axis=0)
+            down = np.roll(layer, -1, axis=0)
+            left = np.roll(layer, 1, axis=1)
+            right = np.roll(layer, -1, axis=1)
+            diffused = (up + down + left + right) // 4
+            self.array[:, :, i] = weight * layer + (1 - weight) * diffused'''
+    def diffuse(self, diffusion_coefficient=.25):
+        # Define your diffusion kernel for 2D
+        kernel = np.array( [[0, 1/4, 0],
+                            [1/4, 0, 1/4],
+                            [0, 1/4, 0]])
+        for i in range(1, 3):  # Only apply to layers 1 and 2
+            layer = self.array[:, :, i].astype(float)  # Convert to float
+            diffused = convolve(layer, kernel, mode='constant', cval=0)
+            layer += diffusion_coefficient * (diffused - layer)
+            self.array[:, :, i] = np.clip(layer, 0, 255).astype(np.uint8)  # Convert back to uint8
+    
     def update(self):
-        for hive in np.argwhere(self.array[:, :, 0] == 1):
-            self.scent_bubble(hive, radius=30, layer=1, cmax=200)
-        for efood in np.argwhere(self.array[:, :, 0] == 2):
-            self.scent_bubble(efood, radius=15, layer=2, cmax=100)
+        # place value of 255 on corresponding layers under hive:
+        self.array[self.hive[0], self.hive[1], 1] = 255
+        # same for under food:
+        for food in np.argwhere(self.array[:, :, 0] == 2):
+            self.array[food[0], food[1], 2] = 255
+        #for hive in np.argwhere(self.array[:, :, 0] == 1): self.scent_bubble(hive, radius=30, layer=1, cmax=200)
+        #for efood in np.argwhere(self.array[:, :, 0] == 2): self.scent_bubble(efood, radius=15, layer=2, cmax=100)
         ant_indices = np.argwhere((self.array[:, :, 0] >= 10) & (self.array[:, :, 0] <= 27))
         if len(ant_indices) < ants:
             self.spawn_ant()
@@ -102,22 +126,12 @@ class AntArray:
                     ant_dir = (ant_dir + vkey[np.argmax(np.where(view[:sees, 2] > 0, view[:sees, 2], -np.inf))]) % 8
                 else:
                     ant_dir = (ant_dir + vkey[np.argmin(np.where(view[:sees, 2] > 0, view[:sees, 2], np.inf))]) % 8
-                #targets = np.where((view[:sees, 2] > 0) & (view[:sees, 2] > current_value + 1))[0]
-                #if len(targets) > 0:
-                #    ant_dir = (ant_dir + vkey[targets[0]]) % 8
-                #else:
-                #    ant_dir = (ant_dir + vkey[np.argmin(np.where((view[:sees, 2] > 0) & (view[:sees, 2] == current_value-1), view[:sees, 2], np.inf))]) % 8
             elif not is_fooding and any(0 < i <= 255 for i in view[:sees, 1]):
                 current_value = self.array[x, y, 1]
                 if current_value > 0:
                     ant_dir = (ant_dir + vkey[np.argmax(np.where(view[:sees, 1] > 0, view[:sees, 1], -np.inf))]) % 8
                 else:
                     ant_dir = (ant_dir + vkey[np.argmin(np.where(view[:sees, 1] > 0, view[:sees, 1], np.inf))]) % 8
-                #targets = np.where((view[:sees, 1] > 0) & (view[:sees, 1] > current_value + 1))[0]
-                #if len(targets) > 0:
-                #    ant_dir = (ant_dir + vkey[targets[0]]) % 8
-                #else:
-                #    ant_dir = (ant_dir + vkey[np.argmin(np.where((view[:sees, 1] > 0) & (view[:sees, 1] == current_value-1), view[:sees, 1], np.inf))]) % 8
             else: # if nothing else, wander randomly
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=wander)) % 8
             # Calculate the new position based on the ant's current direction
@@ -138,8 +152,9 @@ class AntArray:
                 # Decrease opposing pheromone under the ant's position, MIGHT resolve circles sooner?
                 self.array[x, y, 2 if is_fooding else 1] = max(0, self.array[x, y, 2 if is_fooding else 1] - p_lvl//4)
         # Evaporate pheromones
-        mask = self.array[:, :, 1:3] > 0
-        self.array[:, :, 1:3][mask] -= 1
+        self.diffuse()
+        #mask = self.array[:, :, 1:3] > 0
+        #self.array[:, :, 1:3][mask] -= 1
     
     def print_state(self):
         output = "\x1b[H"
