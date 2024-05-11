@@ -18,10 +18,10 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
-ants = 20
+ants = 50
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 100  # initial strength-level of pheromones ants put out
-sees = 5  # how much of the ant's view it can see, can only be 3, 5 or 7
+sees = 3  # how much of the ant's view it can see, can only be 3, 5 or 7
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # empty, hive, food, wall
 directions = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))  # up, up-right, right, down-right, down, down-left, left, up-left
@@ -160,6 +160,7 @@ class AntArray:
 
 if __name__ == '__main__':
     try:
+        print('\x1b[?25l\x1b]0;NantSim',end='\a',flush=True)
         ant_array = AntArray()
         if os.name == 'posix': # if on Linux
             oldsettings = termios.tcgetattr(sys.stdin) # store old terminal settings
@@ -167,11 +168,11 @@ if __name__ == '__main__':
         # Main simulation loop
         while ...:
             ant_array.print_state()
-            sleep(0.1)
+            sleep(0.05)
             ant_array.update()
             if os.name == 'nt' and msvcrt.kbhit() and msvcrt.getch() in (b'\x1b',b'q'): break # ESC or q to quit
             elif os.name == 'posix' and sys.stdin in select.select([sys.stdin],[],[],0)[0] and sys.stdin.read(1) in ('\x1b','q'): break
     except KeyboardInterrupt: pass # catch Ctrl+C
     finally: # ensures these run even if program is interrupted, so terminal functions properly on exit
         if os.name == 'posix': termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldsettings) # restore terminal settings
-        print()
+        print('\x1b[?25h')
