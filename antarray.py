@@ -5,20 +5,6 @@ import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
 else: import sys, termios, tty, select # for Linux keyboard input
 
-'''
-Rules for ant pheromone simulation within an array:
-- Solid layer contains: empty-0, hive-1, food-2, walls-3, ants-10-17 (foodingAnt directions), 20-27 (homingAnt directions)
-- Pheromone layers are uint8: 0-255 for food pheromones and hive pheromones
-- Ants leave pheromones in the corresponding layer based on their mode (fooding or homing)
-- Ants decide to move based on the spaces around them, ignoring the spot they're on and the spot "behind" the ant
-- Each "round" ants move onto the space of their target pheromone with the lowest value, if multiple of those pheromones present
-- Ants cannot move into spaces already occupied by other ants, the hive, food, or walls
-- When a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive
-- When target pheromones not detected, continue in same direction with occasional random variation +/- 1 (to avoid getting stuck in a corner)
-- If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants
-- When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
-'''
-
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 100  # initial strength-level of pheromones ants put out
 sees = 5  # how much of the ant's view it can see, can only be 3, 5 or 7

@@ -3,7 +3,7 @@ import numpy as np
 from time import sleep
 import os
 
-'''
+''' Old version! Does everything on a single array layer.
 Rules for ant pheromone simulation within an array:
 - Main array can contain: empty-0, hive-1001, food-1002, walls-1003, 1010-1017 (foodingAnt directions), 1020-1027 (homingAnt directions)
 - Pheromones are left as: negative values by foodingAnts, positive by HomingAnts, both decreasing to 0 as they "evaporate"
@@ -12,7 +12,7 @@ Rules for ant pheromone simulation within an array:
 - each "round" ants move onto the space of their target pheromone with the lowest value, if multiple of those pheromones present
 - ants cannot move into spaces already occupied by other ants, the hive, food, or walls
 - when a foodingAnt finds food, it changes to homingAnt, and homingAnts change back to foodingAnts when they find hive
-- when target pheromones not detected, continue in same direction with occasional random variation +/- 1 (to avoid getting stuck in a corner)
+- when target pheromones not detected, continue in same direction with occasional random variation +/- 1
 - if only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants
 - when an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it
 '''
