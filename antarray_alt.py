@@ -19,7 +19,7 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants.
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it.
 '''
-ants = 100
+ants = 42
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 200  # initial strength-level of pheromones ants put out
 sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7
@@ -117,8 +117,12 @@ class AntArray:
             # Determine direction based on pheromones
             elif any(0 < i <= 255 for i in view[:sees, ant_mode]):
                 #current_value = self.array[x, y, 2]
+                #if current_value > 0:
                 ant_dir = (ant_dir + vkey[np.argmax(view[:sees, ant_mode])]) % 8  #np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf)
-                # instead of using choice with the max value, go forward when all 3 options have target pheromone, turn away when 1 doesn't
+                #else:
+                #    ant_dir = (ant_dir + vkey[np.argmin(np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], np.inf))]) % 8
+                #actions = {(0,1,0):0,(1,0,1):0,(1,1,1):0,(1,1,0):1,(1,0,0):1,(0,1,1):2,(0,0,1):2}
+                #ant_dir = (ant_dir + vkey[actions.get(tuple(view[:3, ant_mode] > 0))]) % 8
             else: # if nothing else, wander randomly
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=wander)) % 8
             # Calculate the new position based on the ant's current direction
