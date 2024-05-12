@@ -21,7 +21,7 @@ Rules for ant pheromone simulation within an array:
 '''
 ants = 42
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
-p_lvl = 200  # initial strength-level of pheromones ants put out
+p_lvl = 255  # initial strength-level of pheromones ants put out
 sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # empty, hive, food, wall
@@ -30,7 +30,7 @@ sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class AntArray:
 
-    def __init__(self, size=(*sim_size,4), num_food=1, food_radius=sim_size[1]//2):
+    def __init__(self, size=(*sim_size,4), num_food=3, food_radius=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.uint8) # Initialize a 3D array
         # Place walls on edges of array on the first layer
         self.array[[0, -1], :, 0] = self.array[:, [0, -1], 0] = 3
@@ -98,8 +98,8 @@ class AntArray:
             ant_dir = self.array[x, y, 0] % 10
             # Record what currently surrounds the ant
             surrounds = np.zeros((8, 4), dtype=np.uint8)
-            for i, (dx, dy) in enumerate(directions):
-                if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
+            for i, (dx, dy) in enumerate(directions): surrounds[i] = self.array[x + dx, y + dy]
+                #if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
             # Prioritize stuff in front of ant, ordered by front, left, right
             view = np.zeros((7, 4), dtype=np.uint8) # 7 because we ignore what's directly behind ant
             view[0] = surrounds[ant_dir]  # What's in front of the ant first
@@ -121,7 +121,7 @@ class AntArray:
                 ant_dir = (ant_dir + vkey[np.argmax(view[:sees, ant_mode])]) % 8  #np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf)
                 #else:
                 #    ant_dir = (ant_dir + vkey[np.argmin(np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], np.inf))]) % 8
-                #actions = {(0,1,0):0,(1,0,1):0,(1,1,1):0,(1,1,0):1,(1,0,0):1,(0,1,1):2,(0,0,1):2}
+                #actions = {(0,1,0):0,(1,0,1):0,(1,1,1):0,(1,1,0):1,(1,0,0):3,(0,1,1):2,(0,0,1):4}
                 #ant_dir = (ant_dir + vkey[actions.get(tuple(view[:3, ant_mode] > 0))]) % 8
             else: # if nothing else, wander randomly
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=wander)) % 8
@@ -161,11 +161,11 @@ class AntArray:
                     row_symbols.append(symbols[value])
                 elif 10 <= value < 28:
                     color = '\x1b[31m' if 10 <= value <= 17 else '\x1b[32m' if 20 <= value <= 27 else ''
-                    bgcol = f'\x1b[48;2;{int(self.array[i, j, 1])};{int(self.array[i, j, 2])};0m'
+                    bgcol = f'\x1b[48;2;0;{int(self.array[i, j, 2])};{int(self.array[i, j, 1])}m'
                     arrow = arrows[value % 10]
                     row_symbols.append(color + bgcol + arrow + '\x1b[0m')
                 else:
-                    row_symbols.append(f'\x1b[48;2;{int(self.array[i, j, 1])};{int(self.array[i, j, 2])};0m \x1b[0m')
+                    row_symbols.append(f'\x1b[48;2;0;{int(self.array[i, j, 2])};{int(self.array[i, j, 1])}m \x1b[0m')
             output += ''.join(row_symbols) + "\n"
         print(output[:-1], end='\r')
 
