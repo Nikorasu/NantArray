@@ -22,7 +22,7 @@ Rules for ant pheromone simulation within an array:
 ants = 100
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 200  # initial strength-level of pheromones ants put out
-sees = 3  # how much of the ant's view it can see, can only be 3, 5 or 7
+sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # empty, hive, food, wall
 directions = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))  # up, up-right, right, down-right, down, down-left, left, up-left
@@ -101,7 +101,7 @@ class AntArray:
             for i, (dx, dy) in enumerate(directions):
                 if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
             # Prioritize stuff in front of ant, ordered by front, left, right
-            view = np.zeros((7, 4), dtype=np.uint8)
+            view = np.zeros((7, 4), dtype=np.uint8) # 7 because we ignore what's directly behind ant
             view[0] = surrounds[ant_dir]  # What's in front of the ant first
             vkey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + vkey[targets[0]]) % 8
             for i, offset in enumerate(vkey): # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
@@ -117,7 +117,8 @@ class AntArray:
             # Determine direction based on pheromones
             elif any(0 < i <= 255 for i in view[:sees, ant_mode]):
                 #current_value = self.array[x, y, 2]
-                ant_dir = (ant_dir + vkey[np.argmax(np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf))]) % 8
+                ant_dir = (ant_dir + vkey[np.argmax(view[:sees, ant_mode])]) % 8  #np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf)
+                # instead of using choice with the max value, go forward when all 3 options have target pheromone, turn away when 1 doesn't
             else: # if nothing else, wander randomly
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=wander)) % 8
             # Calculate the new position based on the ant's current direction
