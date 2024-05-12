@@ -19,7 +19,7 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants.
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it.
 '''
-ants = 42
+ants = 100
 wander = [.1, .8, .1]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 200  # initial strength-level of pheromones ants put out
 sees = 3  # how much of the ant's view it can see, can only be 3, 5 or 7
@@ -96,23 +96,24 @@ class AntArray:
             # Determine the ant's current state (fooding or homing) and direction
             ant_mode = (10 <= self.array[x, y, 0] <= 17) + 1
             ant_dir = self.array[x, y, 0] % 10
-            surrounds = np.zeros((8, 4), dtype=np.uint8) # Create a 3D surrounds array
+            # Record what currently surrounds the ant
+            surrounds = np.zeros((8, 4), dtype=np.uint8)
             for i, (dx, dy) in enumerate(directions):
                 if (dx, dy) != directions[(ant_dir + 4) % 8]: surrounds[i] = self.array[x + dx, y + dy]
-            view = np.zeros((7, 4), dtype=np.uint8) # Create a 3D view array, ordered by front of ant, left, right
+            # Prioritize stuff in front of ant, ordered by front, left, right
+            view = np.zeros((7, 4), dtype=np.uint8)
             view[0] = surrounds[ant_dir]  # What's in front of the ant first
             vkey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + vkey[targets[0]]) % 8
-            for i, offset in enumerate(vkey):  # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
+            for i, offset in enumerate(vkey): # Add elements with offsets of +/- 1, 2, 3 with wrap-around behavior
                 view[i] = surrounds[(ant_dir + offset)%8]  # view[2*offset-1]
             # Switch mode and direction when reached food or hive
             if ant_mode in surrounds[:, 0]:
                 ant_dir = (ant_dir + 4) % 8
                 self.array[x, y, 0] = ant_dir + ant_mode * 10
                 self.array[x, y, 3] = 255
-                # set ant_mode to opposite of current mode 2 if 1, 1 if 2
                 ant_mode = (2 if ant_mode == 1 else 1)
-            elif np.sum(view[:sees] == 3) > 2: # If walls directly ahead, turn randomly
-                ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+            #elif np.sum(view[:sees] == 3) > 2: # If walls directly ahead, turn randomly
+            #    ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
             # Determine direction based on pheromones
             elif any(0 < i <= 255 for i in view[:sees, ant_mode]):
                 #current_value = self.array[x, y, 2]
@@ -123,8 +124,11 @@ class AntArray:
             nx, ny = np.add([x,y], directions[ant_dir])
             # Check if the new position is valid
             if self.array[nx, ny, 0] != 0:
-                ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+                ant_dir = (ant_dir + vkey[np.random.choice(np.where(view == 0)[0])]) % 8 #surrounds[:, 0]
                 nx, ny = np.add([x,y], directions[ant_dir])
+            #if self.array[nx, ny, 0] != 0:
+            #    ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
+            #    nx, ny = np.add([x,y], directions[ant_dir])
             if self.array[nx, ny, 0] == 0:
                 # Update the ant's position
                 self.array[x, y, 0] = 0
@@ -138,10 +142,10 @@ class AntArray:
                 self.array[x, y, 2 if ant_mode-1 else 1] = max(0, self.array[x, y, 2 if ant_mode-1 else 1] - p_lvl//4)
         # Evaporate pheromones
         self.diffuse()
-        if self.evap == 2:
+        if self.evap: # == 2:
             mask = self.array[:, :, 1:3] > 0
             self.array[:, :, 1:3][mask] -= 1
-        self.evap = (self.evap + 1) % 3 #not self.evap
+        self.evap = not self.evap #(self.evap + 1) % 3
     
     def print_state(self):
         output = "\x1b[H"
