@@ -65,15 +65,6 @@ class AntArray:
                     scaled_dist = int((1 - dist/radius) * cmax)
                     self.array[y, x, layer] = max(self.array[y, x, layer], scaled_dist) if cmax else max(self.array[y, x, layer], int(radius-dist))
     
-    '''def diffuse(self, weight=.8):
-        for i in range(1, 3):  # Only apply to layers 1 and 2
-            layer = self.array[:, :, i]
-            up = np.roll(layer, 1, axis=0)
-            down = np.roll(layer, -1, axis=0)
-            left = np.roll(layer, 1, axis=1)
-            right = np.roll(layer, -1, axis=1)
-            diffused = (up + down + left + right) // 4
-            self.array[:, :, i] = weight * layer + (1 - weight) * diffused #'''
     def diffuse(self, coefficient=.25):
         # Define your diffusion kernel for 2D
         kernel = np.array( [[0, 1/4, 0],
@@ -102,7 +93,7 @@ class AntArray:
             if self.array[x, y, 3] == 0:
                 self.array[x, y, 0] = 0
                 continue
-            #is_fooding = 10 <= self.array[x, y, 0] <= 17 # SHOULD INSTEAD be 2 if fooding, 1 if homing
+            # Determine the ant's current state (fooding or homing) and direction
             ant_mode = (10 <= self.array[x, y, 0] <= 17) + 1
             ant_dir = self.array[x, y, 0] % 10
             surrounds = np.zeros((8, 4), dtype=np.uint8) # Create a 3D surrounds array
@@ -126,9 +117,6 @@ class AntArray:
             elif any(0 < i <= 255 for i in view[:sees, ant_mode]):
                 #current_value = self.array[x, y, 2]
                 ant_dir = (ant_dir + vkey[np.argmax(np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf))]) % 8
-            #elif not ant_mode-1 and any(0 < i <= 255 for i in view[:sees, 1]):
-            #    #current_value = self.array[x, y, 1]
-            #    ant_dir = (ant_dir + vkey[np.argmax(np.where(view[:sees, 1] > 0, view[:sees, 1], -np.inf))]) % 8
             else: # if nothing else, wander randomly
                 ant_dir = (ant_dir + np.random.choice([-1, 0, 1], p=wander)) % 8
             # Calculate the new position based on the ant's current direction
