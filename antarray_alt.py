@@ -86,12 +86,12 @@ class AntArray:
         for food in np.argwhere(self.array[:, :, 0] == 2):
             self.array[food[0], food[1], 2] = 255
         ant_indices = np.argwhere((self.array[:, :, 0] >= 10) & (self.array[:, :, 0] <= 27))
-        if len(ant_indices) < ants:
+        if len(ant_indices) < ants:  # if there are not enough ants, spawn more
             self.spawn_ant()
         for x, y in ant_indices:
             if self.array[x, y, 1] > 0 and self.array[x, y, 2] > 0:
-                self.array[x, y, 3] -= 1
-            if self.array[x, y, 3] == 0:
+                self.array[x, y, 3] -= 1  # decrement health if ant is on both pheros
+            if self.array[x, y, 3] == 0:  # if ant health reaches 0, remove it from the array
                 self.array[x, y, 0] = 0
                 continue
             # Determine the ant's current state (fooding or homing) and direction
@@ -129,8 +129,7 @@ class AntArray:
             #    ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
             # Determine direction based on pheromones
             elif any(0 < i <= 255 for i in view[:sees, ant_mode]):
-                #current_value = self.array[x, y, 2]
-                #if current_value > 0:
+                #if self.array[x, y, 2] > 0:
                 ant_dir = (ant_dir + vkey[np.argmax(view[:sees, ant_mode])]) % 8  #np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], -np.inf)
                 #else:
                 #    ant_dir = (ant_dir + vkey[np.argmin(np.where(view[:sees, ant_mode] > 0, view[:sees, ant_mode], np.inf))]) % 8
