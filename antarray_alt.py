@@ -19,7 +19,7 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants.
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it.
 '''
-ants = 64
+ants = 48
 wander = [.05, .9, .05]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 p_lvl = 200  # initial strength-level of pheromones ants put out
 sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7. 3 seems best.
@@ -105,13 +105,14 @@ class AntArray:
                 # Calculate distances to hive for surrounding positions
                 h_dists = np.array([np.sqrt((nx - self.hive[0])**2 + (ny - self.hive[1])**2)
                                     for nx, ny in [(x + dx, y + dy) for dx, dy in directions]])
-                # Subtract the minimum distance and shift the values
-                shifted_dists = np.roll(h_dists - min(h_dists), 4)
+                # Subtract the minimum distance from all, then roll to other side, to weigh towards hive
+                rolled_dists = np.roll(h_dists - min(h_dists), 4) * 100 # times multiplier
+                largest = np.argsort(rolled_dists)[-3:]
+                closer_dists = np.zeros_like(rolled_dists)
+                closer_dists[largest] = rolled_dists[largest]
                 # Apply the shifted distances as weights to the hive pheromone layer
-                multiplier = 100  # Adjust this value to control the magnitude of the weight
-                for i in range(8):
-                    if surrounds[i, 1] > 0:
-                        surrounds[i, 1] = np.clip(surrounds[i, 1] + int(shifted_dists[i] * multiplier), 0, 255)
+                #surrounds[:, 1] = np.clip(surrounds[:, 1] + np.int32(closer_dists), 0, 255)
+                surrounds[:, 1] = np.where(surrounds[:, 1] > 0, np.clip(surrounds[:, 1] + np.int32(closer_dists), 0, 255), surrounds[:, 1])
             # Prioritize stuff in front of ant, ordered by front, left, right
             vkey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + vkey[targets[0]]) % 8
             view = np.zeros((7, 4), dtype=np.uint8) # 7 because we ignore what's directly behind ant
