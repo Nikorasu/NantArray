@@ -22,6 +22,7 @@ Rules for ant pheromone simulation within an array:
 ants = 80
 p_lvl = 200  # initial strength-level of pheromones ants put out
 wander = [.05, .9, .05]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
+hivemult = 100
 sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7. 3 seems best.
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # hive, food, wall
@@ -30,7 +31,7 @@ sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class AntArray:
 
-    def __init__(self, size=(*sim_size,4), gap=20, num_food=2, food_size=255, food_dist=sim_size[1]//2):
+    def __init__(self, size=(*sim_size,4), gap=20, num_food=2):
         self.array = np.zeros(size, dtype=np.float64) # Initialize a 3D array
         # Place walls on edges of array on the first layer
         self.array[[0, -1], :, 0] = self.array[:, [0, -1], 0] = 3
@@ -45,10 +46,10 @@ class AntArray:
         x_indices, y_indices = np.indices((size[0], size[1]))
         distances = np.sqrt((x_indices - self.hive[0])**2 + (y_indices - self.hive[1])**2)
         # place food sources into array, randomly outside of food_dist from the hive
-        f_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances > food_dist))
+        f_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances > sim_size[1]//2))
         f_chosen = f_indices[np.random.choice(f_indices.shape[0], num_food, replace=False)]
         self.array[f_chosen[:, 0], f_chosen[:, 1], 0] = 2
-        self.array[f_chosen[:, 0], f_chosen[:, 1], 3] = food_size
+        self.array[f_chosen[:, 0], f_chosen[:, 1], 3] = 100 # intended to be times ants can touch food before food respawns
         self.died = 0
         self.returned = 0
     
@@ -112,7 +113,7 @@ class AntArray:
                 h_dists = np.array([np.sqrt((nx - self.hive[0])**2 + (ny - self.hive[1])**2)
                                     for nx, ny in [(x + dx, y + dy) for dx, dy in directions]])
                 # Subtract the minimum distance from all, then roll to other side, to weigh towards hive
-                rolled_dists = np.roll(h_dists - min(h_dists), 4) * 100 # times multiplier
+                rolled_dists = np.roll(h_dists - min(h_dists), 4) * hivemult # times multiplier
                 largest = np.argsort(rolled_dists)[-3:]
                 closer_dists = np.zeros_like(rolled_dists)
                 closer_dists[largest] = rolled_dists[largest]
