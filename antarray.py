@@ -30,14 +30,14 @@ sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class AntArray:
 
-    def __init__(self, size=(*sim_size,4), num_food=2, food_size=255, food_dist=sim_size[1]//2):
+    def __init__(self, size=(*sim_size,4), gap=20, num_food=2, food_size=255, food_dist=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.float64) # Initialize a 3D array
         # Place walls on edges of array on the first layer
         self.array[[0, -1], :, 0] = self.array[:, [0, -1], 0] = 3
         # Place wall with gap down middle of array
-        gap_start = np.random.randint(0, self.array.shape[0]-10)
+        gap_start = np.random.randint(0, self.array.shape[0] - gap)
         self.array[:gap_start, self.array.shape[1]//2, 0] = 3
-        self.array[gap_start+10:, self.array.shape[1]//2, 0] = 3
+        self.array[gap_start + gap:, self.array.shape[1]//2, 0] = 3
         # Place hive into middle of array on the first layer
         self.hive = (size[0]//2, size[1]//4)
         self.array[self.hive[0], self.hive[1], 0] = 1
@@ -119,8 +119,8 @@ class AntArray:
                 closer_dists = np.zeros_like(rolled_dists)
                 closer_dists[largest] = rolled_dists[largest]
                 # Apply the shifted distances as weights to the hive pheromone layer
-                #surrounds[:, 1] = np.clip(surrounds[:, 1] + np.int32(closer_dists), 0, 255)
-                surrounds[:, 1] = np.where(surrounds[:, 1] > 0, np.clip(surrounds[:, 1] + closer_dists, 0, 255), surrounds[:, 1])
+                surrounds[:, 1] = np.clip(surrounds[:, 1] + closer_dists, 0, 255)
+                #surrounds[:, 1] = np.where(surrounds[:, 1] > 0, np.clip(surrounds[:, 1] + closer_dists, 0, 255), surrounds[:, 1])
             # Prioritize stuff in front of ant, ordered by front, left, right
             vkey = [0,-1,1,-2,2,-3,3] # Key for seeing in the relative direction, ant_dir = (ant_dir + vkey[targets[0]]) % 8
             view = np.zeros((7, 4), dtype=np.float64) # 7 because we ignore what's directly behind ant
