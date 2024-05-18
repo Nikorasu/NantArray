@@ -49,7 +49,6 @@ class AntArray:
         f_chosen = f_indices[np.random.choice(f_indices.shape[0], num_food, replace=False)]
         self.array[f_chosen[:, 0], f_chosen[:, 1], 0] = 2
         self.array[f_chosen[:, 0], f_chosen[:, 1], 3] = food_size
-        self.vaprate = 0
         self.died = 0
         self.returned = 0
     
@@ -74,7 +73,6 @@ class AntArray:
     
     def diffuse(self, coefficient=.3, evap=.5):
         # Define your diffusion kernel for 2D
-        #kernel = np.array( [[0, 1/4, 0],  [1/4, 0, 1/4],  [0, 1/4, 0]])
         kernel = np.array( [[0, .05, 0],
                             [.05, .8, .05],
                             [0, .05, 0]])
@@ -151,9 +149,6 @@ class AntArray:
             if self.array[nx, ny, 0] != 0 and len(avail := np.where(view == 0)[0]): # if something in the way
                 ant_dir = (ant_dir + vkey[np.random.choice(avail)]) % 8 #surrounds[:, 0]
                 nx, ny = np.add([x,y], directions[ant_dir])
-            #if self.array[nx, ny, 0] != 0:
-            #    ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
-            #    nx, ny = np.add([x,y], directions[ant_dir])
             if self.array[nx, ny, 0] == 0:
                 # Update the ant's position
                 self.array[x, y, 0] = 0
@@ -163,13 +158,9 @@ class AntArray:
                 self.array[x, y, 3] = 0
                 # Add pheromones to the layer corresponding to the ant's state
                 self.array[x, y, 1 if ant_mode-1 else 2] = min(255, self.array[x, y, 1 if ant_mode-1 else 2] + p_lvl)
-                # Decrease opposing pheromone under the ant's position, MIGHT resolve circles sooner?
-                #self.array[x, y, 2 if ant_mode-1 else 1] = max(0, self.array[x, y, 2 if ant_mode-1 else 1] - p_lvl//4)
         # diffuse and evaporate pheromones
         self.diffuse()
-        #if self.vaprate: # == 2:
         #self.array[:, :, 1:3][self.array[:, :, 1:3] > 0] -= 1
-        #self.vaprate = not self.vaprate #(self.vaprate + 1) % 3
     
     def print_state(self):
         output = "\x1b[H"
