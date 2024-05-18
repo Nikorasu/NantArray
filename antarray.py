@@ -30,23 +30,28 @@ sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class AntArray:
 
-    def __init__(self, size=(*sim_size,4), num_food=2, food_radius=sim_size[1]//2):
+    def __init__(self, size=(*sim_size,4), num_food=2, food_size=255, food_dist=sim_size[1]//2):
         self.array = np.zeros(size, dtype=np.float64) # Initialize a 3D array
         # Place walls on edges of array on the first layer
         self.array[[0, -1], :, 0] = self.array[:, [0, -1], 0] = 3
+        # Place wall with gap down middle of array
+        gap_start = np.random.randint(0, self.array.shape[0]-10)
+        self.array[:gap_start, self.array.shape[1]//2, 0] = 3
+        self.array[gap_start+10:, self.array.shape[1]//2, 0] = 3
         # Place hive into middle of array on the first layer
         self.hive = (size[0]//2, size[1]//4)
         self.array[self.hive[0], self.hive[1], 0] = 1
         # calculate the distance from each point to the hive
         x_indices, y_indices = np.indices((size[0], size[1]))
         distances = np.sqrt((x_indices - self.hive[0])**2 + (y_indices - self.hive[1])**2)
-        # place food sources into array, randomly outside of food_radius from the hive
-        f_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances > food_radius))
+        # place food sources into array, randomly outside of food_dist from the hive
+        f_indices = np.argwhere((self.array[:, :, 0] == 0) & (distances > food_dist))
         f_chosen = f_indices[np.random.choice(f_indices.shape[0], num_food, replace=False)]
         self.array[f_chosen[:, 0], f_chosen[:, 1], 0] = 2
+        self.array[f_chosen[:, 0], f_chosen[:, 1], 3] = food_size
         self.vaprate = 0
         self.died = 0
-        self.eaten = 0
+        self.returned = 0
     
     def spawn_ant(self):
         near_hive = [self.array[self.hive[0] + dx, self.hive[1] + dy, 0] for dx, dy in directions]
@@ -70,9 +75,9 @@ class AntArray:
     def diffuse(self, coefficient=.3, evap=.5):
         # Define your diffusion kernel for 2D
         #kernel = np.array( [[0, 1/4, 0],  [1/4, 0, 1/4],  [0, 1/4, 0]])
-        kernel = np.array( [[0, .1, 0],
-                            [.1, .6, .1],
-                            [0, .1, 0]])
+        kernel = np.array( [[0, .05, 0],
+                            [.05, .8, .05],
+                            [0, .05, 0]])
         for i in range(1, 3):  # Only apply to layers 1 and 2
             layer = self.array[:, :, i]#.astype(float) # Convert to float
             diffused = convolve(layer, kernel, mode='constant', cval=0)
@@ -143,8 +148,8 @@ class AntArray:
             # Calculate the new position based on the ant's current direction
             nx, ny = np.add([x,y], directions[ant_dir])
             # Check if the new position is valid
-            if self.array[nx, ny, 0] != 0: # if something in the way
-                ant_dir = (ant_dir + vkey[np.random.choice(np.where(view == 0)[0])]) % 8 #surrounds[:, 0]
+            if self.array[nx, ny, 0] != 0 and len(avail := np.where(view == 0)[0]): # if something in the way
+                ant_dir = (ant_dir + vkey[np.random.choice(avail)]) % 8 #surrounds[:, 0]
                 nx, ny = np.add([x,y], directions[ant_dir])
             #if self.array[nx, ny, 0] != 0:
             #    ant_dir = np.random.choice(np.where(surrounds[:, 0] == 0)[0])
