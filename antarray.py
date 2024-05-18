@@ -19,9 +19,9 @@ Rules for ant pheromone simulation within an array:
 - If only the non-targeted pheromone is present (in front), move towards strongest of that type, to hopefully follow similar-ants.
 - When an ant moves onto a spot with an existing pheromone, that value will be added to the pheromone the ant will leave behind it.
 '''
-ants = 64
-wander = [.05, .9, .05]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
+ants = 80
 p_lvl = 200  # initial strength-level of pheromones ants put out
+wander = [.05, .9, .05]   # probabilities of: turning left, going straight, or turning right. (must sum to 1?)[1/10,4/5,1/10]
 sees = 3  # how much of the ant's view it can usually see, can only be 3, 5 or 7. 3 seems best.
 arrows = ('🡑', '🡕', '🡒', '🡖', '🡓', '🡗', '🡐', '🡔')  # for printing simulation state later, ants will be arrows indicating direction
 symbols = {1: '\x1b[31;1m⭖\x1b[0m', 2: '\x1b[32;1m☘\x1b[0m', 3: '▒'}  # hive, food, wall
@@ -94,7 +94,7 @@ class AntArray:
         if len(ant_indices) < ants:  # if there are not enough ants, spawn more
             self.spawn_ant()
         for x, y in ant_indices:
-            if self.array[x, y, 1] > 0 and self.array[x, y, 2] > 0:
+            if self.array[x, y, 1] > 100 and self.array[x, y, 2] > 100:
                 self.array[x, y, 3] -= 1  # decrement health if ant is on both pheros
             if self.array[x, y, 3] == 0:  # if ant health reaches 0, remove it from the array
                 self.array[x, y, 0] = 0
