@@ -50,17 +50,17 @@ class AntArray:
         f_chosen = f_indices[np.random.choice(f_indices.shape[0], num_food, replace=False)]
         self.array[f_chosen[:, 0], f_chosen[:, 1], 0] = 2
         self.array[f_chosen[:, 0], f_chosen[:, 1], 3] = 100 # intended to be times ants can touch food before food respawns
-        self.died = 0
+        self.died = 0  # for scoring, not implemented yet..
         self.returned = 0
     
-    def spawn_ant(self):
+    def spawn_ant(self, health=200):
         near_hive = [self.array[self.hive[0] + dx, self.hive[1] + dy, 0] for dx, dy in directions]
         free_spaces = np.argwhere(np.array(near_hive) == 0).flatten()
         if free_spaces.size > 0:
             dir_idx = np.random.choice(free_spaces)
             new_pos = directions[dir_idx]
             self.array[self.hive[0] + new_pos[0], self.hive[1] + new_pos[1], 0] = 10 + dir_idx
-            self.array[self.hive[0] + new_pos[0], self.hive[1] + new_pos[1], 3] = 255
+            self.array[self.hive[0] + new_pos[0], self.hive[1] + new_pos[1], 3] = health
     
     def scent_bubble(self, center, radius=10, layer=1, cmax=255):
         center_y, center_x = center
